@@ -1,16 +1,17 @@
-
 openapi: 3.0.3
 info:
   title: Dernier Métro API
   version: 1.0.0
+  description: API pour obtenir les horaires du prochain métro
 servers:
-  - url: http://localhost:5000
+  - url: http://localhost:5001
+    description: API locale
 paths:
   /health:
     get:
       summary: Health check
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -24,31 +25,72 @@ paths:
   /next-metro:
     get:
       summary: Prochain passage de métro
+      description: Retourne l'horaire du prochain métro en utilisant les données réelles de la base. Le service est ouvert de 05:30 à 01:15.
       parameters:
         - in: query
           name: station
           schema:
             type: string
           required: true
-          description: Nom de la station
+          description: Nom de la station (doit exister dans la base de données)
+          example: "Châtelet"
       responses:
-        '200':
-          description: Heure d'arrivée estimée
+        "200":
+          description: Heure d'arrivée estimée ou service fermé
           content:
             application/json:
               schema:
-                type: object
+                oneOf:
+                  - type: object
+                    description: Service ouvert
                 properties:
                   station:
                     type: string
-                  line:
+                        example: "Châtelet"
+                      station_id:
+                        type: integer
+                        description: ID de la station dans la base
+                        example: 1
+                      nextArrival:
                     type: string
+                        example: "14:35"
+                      isLast:
+                        type: boolean
+                        description: Indique si c'est le dernier métro
+                        example: false
                   headwayMin:
                     type: integer
-                  nextArrival:
+                        description: Fréquence en minutes (depuis la base)
+                        example: 3
+                      lastMetroTime:
+                        type: string
+                        format: time
+                        description: Heure du dernier métro
+                        example: "01:15:00"
+                      tz:
+                        type: string
+                        description: Fuseau horaire
+                        example: "Europe/Paris"
+                  - type: object
+                    description: Service fermé
+                    properties:
+                      station:
+                        type: string
+                        example: "Châtelet"
+                      station_id:
+                        type: integer
+                        description: ID de la station dans la base
+                        example: 1
+                      service:
+                        type: string
+                        example: "closed"
+                      message:
+                        type: string
+                        example: "Le métro est fermé (01:15-05:30)"
+                      tz:
                     type: string
-                    example: "12:34"
-        '400':
+                        example: "Europe/Paris"
+        "400":
           description: Paramètre manquant
           content:
             application/json:
@@ -56,4 +98,120 @@ paths:
                 type: object
                 properties:
                   error:
+                    type: string
+        "404":
+          description: Station introuvable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Station 'PasUneStation' introuvable"
+                  availableStations:
+                    type: array
+                    items:
+                    type: string
+                    example: ["Châtelet", "Gare de Lyon", "République", "Nation", "Bastille", "Opéra"]
+        "500":
+          description: Erreur de base de données
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Erreur de base de données"
+                  message:
+                    type: string
+  /db-test:
+    get:
+      summary: Test de connexion à la base de données
+      description: Vérifie que l'API est bien connectée à PostgreSQL et retourne les données de configuration
+      responses:
+        "200":
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "connected"
+                  configCount:
+                    type: integer
+                    example: 2
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        key:
+                          type: string
+                        value:
+                          type: object
+        "500":
+          description: Erreur de connexion
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "error"
+                  message:
+                    type: string
+  /stations:
+    get:
+      summary: Liste toutes les stations
+      description: Retourne la liste complète des stations avec leurs fréquences de passage et horaires du dernier métro
+      responses:
+        "200":
+          description: Liste des stations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: Nombre total de stations
+                    example: 6
+                  stations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID de la station
+                          example: 1
+                        name:
+                          type: string
+                          description: Nom de la station
+                          example: "Châtelet"
+                        headway_minutes:
+                          type: integer
+                          description: Fréquence de passage en minutes
+                          example: 3
+                        last_metro_time:
+                          type: string
+                          format: time
+                          description: Heure de départ du dernier métro
+                          example: "01:15:00"
+        "500":
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "error"
+                  message:
                     type: string
