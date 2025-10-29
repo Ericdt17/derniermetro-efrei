@@ -15,14 +15,16 @@ const pool = new Pool({
   database: process.env.DB_NAME || "dernier_metro",
 });
 
-// Tester la connexion au démarrage
-pool.query("SELECT NOW()", (err, res) => {
-  if (err) {
-    console.error("❌ Erreur de connexion à PostgreSQL:", err);
-  } else {
-    console.log("✅ Connecté à PostgreSQL:", res.rows[0].now);
-  }
-});
+// Tester la connexion au démarrage (sauf en tests CI)
+if (process.env.NODE_ENV !== "test") {
+  pool.query("SELECT NOW()", (err, res) => {
+    if (err) {
+      console.error("❌ Erreur de connexion à PostgreSQL:", err);
+    } else {
+      console.log("✅ Connecté à PostgreSQL:", res.rows[0].now);
+    }
+  });
+}
 // Activer CORS pour Swagger UI
 app.use(cors());
 

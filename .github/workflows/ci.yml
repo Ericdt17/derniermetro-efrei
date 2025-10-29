@@ -26,6 +26,9 @@ jobs:
         run: npm ci
 
       - name: Run unit/mocked integration tests
+        env:
+          NODE_ENV: test
+          TZ: Europe/Paris
         working-directory: api
         run: npm run test:ci
 
@@ -50,6 +53,7 @@ jobs:
       - name: Run E2E tests (real API + Postgres)
         env:
           API_BASE: http://localhost:5001
+          TZ: Europe/Paris
         working-directory: api
         run: npm run test:e2e
 
