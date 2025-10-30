@@ -28,6 +28,25 @@ jobs:
         working-directory: api
         run: npm ci
 
+      - name: npm audit (high and critical)
+        working-directory: api
+        run: |
+          npm audit --audit-level=high || (echo "npm audit found issues" && exit 1)
+
+      - name: Trivy FS scan (repo)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-fs.sarif'
+          severity: 'HIGH,CRITICAL'
+
+      - name: Upload Trivy FS results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-fs.sarif'
+
       - name: Run unit/mocked integration tests
         env:
           NODE_ENV: test
@@ -94,5 +113,19 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Trivy Image scan (GHCR)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ steps.meta.outputs.tags }}
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-image.sarif'
+          severity: 'HIGH,CRITICAL'
+
+      - name: Upload Trivy Image results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-image.sarif'
 
 
