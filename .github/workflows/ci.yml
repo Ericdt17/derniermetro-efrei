@@ -18,6 +18,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set lowercase owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -105,9 +108,6 @@ jobs:
           registry: ghcr.io
           username: ${{ env.OWNER_LC }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set lowercase owner
-        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
 
       - name: Set image SHA tag env
         run: echo "IMAGE_SHA_TAG=ghcr.io/${OWNER_LC}/devops-ninja-api:sha-${GITHUB_SHA}" >> $GITHUB_ENV
