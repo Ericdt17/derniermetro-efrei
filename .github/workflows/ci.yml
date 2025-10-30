@@ -106,19 +106,24 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set image SHA tag env
+        run: echo "IMAGE_SHA_TAG=ghcr.io/${{ github.repository_owner }}/devops-ninja-api:sha-${{ github.sha }}" >> $GITHUB_ENV
+
       - name: Build and push API image to GHCR
         uses: docker/build-push-action@v6
         with:
           context: ./api
           file: ./api/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ env.IMAGE_SHA_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Trivy Image scan (GHCR)
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          image-ref: ${{ steps.meta.outputs.tags }}
+          image-ref: ${{ env.IMAGE_SHA_TAG }}
           ignore-unfixed: true
           format: 'sarif'
           output: 'trivy-image.sarif'
