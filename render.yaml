@@ -5,8 +5,7 @@ services:
     runtime: docker
     region: frankfurt  # Europe, changez selon besoin (oregon, frankfurt, singapore)
     plan: free  # free, starter, standard, pro
-    dockerfilePath: ./api/Dockerfile
-    dockerContext: ./api
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     envVars:
       # Database connection (from PostgreSQL service below)
