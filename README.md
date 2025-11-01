@@ -14,7 +14,7 @@ API REST Node.js pour obtenir les horaires du prochain métro à Paris.
 - **Tests automatisés** (unitaires + E2E avec Jest)
 - **Documentation OpenAPI** avec Swagger UI
 - **CI/CD GitHub Actions** avec scans de sécurité (Trivy)
-- **Déploiement staging** automatisé avec Caddy (HTTPS auto)
+- **Déploiement** sur Render.com avec configuration as code
 
 ---
 
@@ -41,6 +41,7 @@ curl http://localhost:5001/health
 ```
 
 **Services démarrés :**
+
 - API: http://localhost:5001
 - Swagger UI: http://localhost:8080
 - PostgreSQL: localhost:5433
@@ -63,19 +64,21 @@ npm run test:watch
 
 ## 📡 Endpoints API
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /health` | Health check |
-| `GET /db-test` | Test connexion PostgreSQL |
-| `GET /stations` | Liste toutes les stations |
+| Endpoint                           | Description                     |
+| ---------------------------------- | ------------------------------- |
+| `GET /health`                      | Health check                    |
+| `GET /db-test`                     | Test connexion PostgreSQL       |
+| `GET /stations`                    | Liste toutes les stations       |
 | `GET /next-metro?station=Châtelet` | Prochain métro pour une station |
 
 **Exemple :**
+
 ```bash
 curl "http://localhost:5001/next-metro?station=Châtelet"
 ```
 
 Réponse:
+
 ```json
 {
   "station": "Châtelet",
@@ -97,6 +100,7 @@ Réponse:
 **Stations disponibles :** Châtelet, Gare de Lyon, République, Nation, Bastille, Opéra
 
 **Commandes utiles :**
+
 ```bash
 # Accéder à la base
 docker compose exec postgres psql -U app -d dernier_metro
@@ -137,9 +141,9 @@ docker run -p 5001:5000 dernier-metro-api
 1. **Tests** : unitaires + E2E + npm audit
 2. **Sécurité** : Trivy (code + image)
 3. **Build** : image Docker → GHCR
-4. **Déploiement** : staging automatique sur push `main`
 
 **Scans actifs :**
+
 - ✅ npm audit (high/critical)
 - ✅ Trivy filesystem scan
 - ✅ Trivy container scan
@@ -148,7 +152,7 @@ docker run -p 5001:5000 dernier-metro-api
 
 ## 🌐 Déploiement Production
 
-### Option 1 : Render.com (Recommandé) ⭐
+### Render.com (Recommandé) ⭐
 
 **Déploiement en 5 minutes :**
 
@@ -165,26 +169,6 @@ docker run -p 5001:5000 dernier-metro-api
 
 ---
 
-### Option 2 : Staging VPS (SSH + Docker)
-
-**Configuration requise** (GitHub Secrets) :
-- `SSH_HOST` : adresse du serveur
-- `SSH_USER` : utilisateur SSH
-- `SSH_KEY` : clé privée SSH
-- `STAGING_DOMAIN` : domaine (ex: api.example.com)
-- `DB_USER`, `DB_PASSWORD`, `DB_NAME` : credentials PostgreSQL
-
-**Déploiement :**
-```bash
-# Automatique sur push `main`
-# OU manuel :
-docker compose -f docker-compose.staging.yml up -d
-```
-
-**Caddy** configure automatiquement HTTPS via Let's Encrypt.
-
----
-
 ## 📚 Documentation
 
 - **OpenAPI Spec** : `openapi/openapi.yaml`
@@ -196,11 +180,13 @@ docker compose -f docker-compose.staging.yml up -d
 ## 🧪 Tests
 
 **Types de tests :**
+
 - **Unitaires** : mocks PostgreSQL (`__tests__/api.test.js`)
 - **E2E** : vraie API + DB (`__tests__/e2e.real.test.js`)
 - **Fonctions métier** : `nextArrival()` (`__tests__/nextArrival.test.js`)
 
 **Coverage :**
+
 - Endpoints API
 - Gestion horaires (fermeture 01:15-05:30)
 - Détection dernier métro
@@ -221,7 +207,7 @@ devops-ninja/
 │   ├── schema.sql          # Tables
 │   └── seed.sql            # Données initiales
 ├── docker-compose.yml      # Développement
-├── docker-compose.staging.yml  # Staging/Prod
+├── docker-compose.staging.yml  # Production (optionnel)
 ├── caddy/                  # Reverse proxy
 │   └── Caddyfile           # Config HTTPS
 ├── openapi/                # Documentation
