@@ -142,7 +142,7 @@ jobs:
   deploy-staging:
     needs: [test-node-and-e2e]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.SSH_HOST != ''
     steps:
       - name: Prepare deploy variables
         run: |
