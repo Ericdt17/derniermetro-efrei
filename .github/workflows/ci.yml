@@ -139,4 +139,56 @@ jobs:
           sarif_file: 'trivy-image.sarif'
           category: 'trivy-image'
 
+  deploy-staging:
+    needs: [test-node-and-e2e]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Prepare deploy variables
+        run: |
+          echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+          echo "IMAGE_SHA_TAG=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/devops-ninja-api:sha-${GITHUB_SHA}" >> $GITHUB_ENV
+
+      - name: SSH known hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Copy compose and Caddyfile to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "docker-compose.staging.yml,caddy/Caddyfile"
+          target: "~/derniermetro-staging"
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.1.0
+        env:
+          IMAGE_SHA_TAG: ${{ env.IMAGE_SHA_TAG }}
+          STAGING_DOMAIN: ${{ secrets.STAGING_DOMAIN }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd ~/derniermetro-staging
+            echo "Deploying $IMAGE_SHA_TAG"
+            docker login ghcr.io -u "${GITHUB_REPOSITORY_OWNER,,}" -p ${{ secrets.GITHUB_TOKEN }}
+            cat > .env <<EOF
+            STAGING_DOMAIN=${STAGING_DOMAIN}
+            API_IMAGE=${IMAGE_SHA_TAG}
+            DB_USER=${DB_USER}
+            DB_PASSWORD=${DB_PASSWORD}
+            DB_NAME=${DB_NAME}
+            EOF
+            docker compose -f docker-compose.staging.yml pull
+            docker compose -f docker-compose.staging.yml up -d
+
 

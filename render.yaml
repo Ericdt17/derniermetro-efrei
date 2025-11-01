@@ -1,0 +1,49 @@
+services:
+  # Web Service - API
+  - type: web
+    name: dernier-metro-api
+    runtime: docker
+    region: frankfurt  # Europe, changez selon besoin (oregon, frankfurt, singapore)
+    plan: free  # free, starter, standard, pro
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    healthCheckPath: /health
+    envVars:
+      # Database connection (from PostgreSQL service below)
+      - key: DB_HOST
+        fromDatabase:
+          name: dernier-metro-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: dernier-metro-db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: dernier-metro-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: dernier-metro-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: dernier-metro-db
+          property: database
+      # Application config
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+
+databases:
+  # PostgreSQL Database
+  - name: dernier-metro-db
+    databaseName: dernier_metro
+    user: app
+    plan: free  # free, starter, standard, pro
+    region: frankfurt
+    postgresMajorVersion: 16
+    # Database will be auto-initialized with schema.sql and seed.sql
+    # via Render's init script mount feature
+

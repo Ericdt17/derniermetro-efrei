@@ -1,0 +1,10 @@
+# Domain for HTTPS (DNS A record must point to the VM)
+STAGING_DOMAIN=api.example.com
+
+# API image to deploy (override default)
+# API_IMAGE=ghcr.io/ericdt17/devops-ninja-api:main
+
+# Database credentials
+DB_USER=app
+DB_PASSWORD=app
+DB_NAME=dernier_metro

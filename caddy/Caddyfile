@@ -1,0 +1,18 @@
+{
+  # Optional: email for Let's Encrypt notices
+  email admin@example.com
+}
+
+{$CADDY_DOMAIN} {
+  encode gzip
+  @api {
+    path /health*
+    path /db-test*
+    path /stations*
+    path /next-metro*
+    path /*
+  }
+  reverse_proxy api:5000
+}
+
+

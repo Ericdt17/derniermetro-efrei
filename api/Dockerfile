@@ -1,16 +1,26 @@
 FROM node:20-alpine
 
-# mkdir /app
-WORKDIR  /app
+WORKDIR /app
 
-COPY package.json .
+# Copy package files
+COPY package.json package-lock.json ./
 
-RUN npm install
+# Install production dependencies only
+RUN npm ci --only=production && npm cache clean --force
 
+# Copy application code
 COPY server.js .
 
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+USER nodejs
+
 ENV PORT=5000
+ENV NODE_ENV=production
 
 EXPOSE 5000
 
-CMD ["npm", "start"]
+# Use node directly instead of npm start (no nodemon in prod)
+CMD ["node", "server.js"]
