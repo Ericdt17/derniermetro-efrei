@@ -2,13 +2,14 @@ pipeline {
     agent any
 
     options {
+        // Garde uniquement les timestamps, option supportée par défaut
         timestamps()
-        ansiColor('xterm')
     }
 
     stages {
         stage('Checkout') {
             steps {
+                // Récupère le code depuis GitHub (SCM configuré dans le job)
                 checkout scm
             }
         }
