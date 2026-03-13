@@ -1,9 +1,8 @@
 pipeline {
     agent {
-        // Nécessite Docker sur le serveur Jenkins
         docker {
-            image 'node:20-alpine'
-            args '-u root:root'
+            image 'node:20-alpine'  // image officielle Node 20
+            args '-u root:root'     // pour éviter des soucis de droits dans le workspace
         }
     }
 
