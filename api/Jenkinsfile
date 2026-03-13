@@ -1,20 +1,13 @@
 pipeline {
     agent any
 
-    tools {
-        // Requires Jenkins "NodeJS" plugin + a NodeJS installation named "node20"
-        nodejs 'node20'
-    }
-
     options {
-        // Garde uniquement les timestamps, option supportée par défaut
         timestamps()
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Récupère le code depuis GitHub (SCM configuré dans le job)
                 checkout scm
             }
         }
